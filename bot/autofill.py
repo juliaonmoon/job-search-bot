@@ -13,7 +13,7 @@ DEFAULTS = {
     "email": "juleselianac@gmail.com",
     "phone": "(604) 230-2415",
     "location": "Bellevue, WA",
-    "linkedin": "https://www.linkedin.com/in/juliacheng",
+    "linkedin": "https://www.linkedin.com/in/juleselicheng/",
     "work_auth": "Yes",          # authorized to work in the US
     "require_sponsorship": "No",
     "gender": "Female",
