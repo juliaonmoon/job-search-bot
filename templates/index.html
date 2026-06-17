@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Julia's Job Search</title>
+<style>
+:root {
+  --bg:      #0f0f1a;
+  --card:    #1a1a2e;
+  --card2:   #1e1e38;
+  --border:  #2a2a4a;
+  --text:    #e0e0f0;
+  --muted:   #8888aa;
+  --accent:  #7c3aed;
+  --accentH: #6d28d9;
+  --green:   #22c55e;
+  --yellow:  #eab308;
+  --blue:    #3b82f6;
+  --red:     #ef4444;
+  --gray:    #6b7280;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; min-height: 100vh; }
+
+/* Header */
+.header { background: var(--card); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+.header h1 { font-size: 18px; font-weight: 700; }
+.header .sub { color: var(--muted); font-size: 11px; margin-top: 2px; }
+
+/* Stats */
+.stats { display: flex; gap: 10px; padding: 16px 24px 0; }
+.stat { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 18px; flex: 1; text-align: center; }
+.stat .num  { font-size: 26px; font-weight: 700; line-height: 1.1; }
+.stat .lbl  { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; }
+
+/* Toolbar */
+.toolbar { display: flex; gap: 8px; padding: 14px 24px 10px; align-items: center; flex-wrap: wrap; }
+.filt { background: var(--card); border: 1px solid var(--border); color: var(--muted); padding: 5px 14px; border-radius: 20px; cursor: pointer; font-size: 12px; transition: all .15s; }
+.filt:hover { border-color: var(--accent); color: var(--text); }
+.filt.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.spacer { flex: 1; }
+.btn-run { background: var(--accent); color: #fff; border: none; padding: 7px 18px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; }
+.btn-run:hover { background: var(--accentH); }
+.btn-run:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Progress bar */
+.progress { background: var(--card2); border: 1px solid var(--border); border-radius: 8px; margin: 0 24px 10px; padding: 12px 16px; display: none; }
+.progress.show { display: block; }
+.progress-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 12px; font-weight: 600; }
+.progress-log { font-family: monospace; font-size: 11px; color: var(--muted); max-height: 100px; overflow-y: auto; }
+
+/* Table */
+.wrap { padding: 0 24px 32px; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+thead tr { background: var(--card); }
+th { padding: 9px 10px; text-align: left; font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tr:hover td { background: var(--card2); }
+
+/* Left accent by status */
+tr.s-applied      td:first-child { border-left: 3px solid var(--blue); }
+tr.s-interviewing td:first-child { border-left: 3px solid var(--yellow); }
+tr.s-offer        td:first-child { border-left: 3px solid var(--green); }
+tr.s-rejected     td:first-child { border-left: 3px solid var(--red); }
+tr.s-skipped      { opacity: .45; }
+
+/* Score pill */
+.sc { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+.sc-hi { background: #14532d33; color: var(--green); }
+.sc-md { background: #78350f33; color: var(--yellow); }
+.sc-lo { background: #1e1b4b33; color: var(--muted); }
+
+/* Status select */
+.ss { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 3px 6px; border-radius: 5px; font-size: 11px; cursor: pointer; }
+
+/* Source labels */
+.src-li { color: #60a5fa; font-size: 10px; font-weight: 600; }
+.src-in { color: #34d399; font-size: 10px; font-weight: 600; }
+.src-ca { color: var(--muted); font-size: 10px; }
+
+/* Salary */
+.sal   { font-size: 11px; color: #86efac; white-space: nowrap; }
+.no-sal { font-size: 11px; color: #444; }
+
+/* Company / title */
+.co { font-weight: 600; font-size: 13px; }
+.jt { color: var(--muted); font-size: 12px; }
+.jl { color: #555; font-size: 11px; margin-top: 1px; }
+
+/* Action buttons */
+.acts { display: flex; gap: 4px; white-space: nowrap; }
+.ab { padding: 3px 9px; border-radius: 5px; border: 1px solid; cursor: pointer; font-size: 11px; font-weight: 500; transition: all .12s; }
+.ab-t { background: #312e8122; color: #a78bfa; border-color: #312e81; }
+.ab-t:hover { background: #4c1d95; }
+.ab-c { background: #1e3a5f22; color: #60a5fa; border-color: #1e40af; }
+.ab-c:hover { background: #1e3a5f; }
+.ab-a { background: #14532d22; color: var(--green); border-color: #15803d; }
+.ab-a:hover { background: #14532d; }
+.ab-lk { background: transparent; color: var(--muted); border-color: var(--border); }
+.ab-lk:hover { color: var(--text); border-color: var(--muted); }
+.ab-sk { background: transparent; color: #555; border-color: #333; }
+.ab-sk:hover { background: #37415133; color: var(--muted); }
+
+/* Empty */
+.empty { text-align: center; padding: 56px; color: var(--muted); }
+.empty p { margin-top: 8px; font-size: 12px; }
+
+/* Modal */
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.72); z-index: 50; align-items: center; justify-content: center; }
+.overlay.open { display: flex; }
+.modal { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 22px; max-width: 740px; width: 96%; max-height: 82vh; display: flex; flex-direction: column; gap: 14px; }
+.modal h2 { font-size: 15px; }
+.modal-body { flex: 1; overflow-y: auto; }
+.modal pre { white-space: pre-wrap; font-family: 'Segoe UI', sans-serif; font-size: 13px; line-height: 1.7; color: var(--text); background: var(--bg); padding: 14px; border-radius: 8px; border: 1px solid var(--border); }
+.modal-foot { display: flex; gap: 8px; justify-content: flex-end; }
+.btn-sec { background: var(--card2); border: 1px solid var(--border); color: var(--muted); padding: 7px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.btn-sec:hover { color: var(--text); }
+.btn-pri { background: var(--accent); color: #fff; border: none; padding: 7px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; }
+.btn-pri:hover { background: var(--accentH); }
+
+/* Apply modal inputs */
+.fld label { display: block; color: var(--muted); font-size: 11px; margin-bottom: 4px; }
+.fld input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px 10px; border-radius: 6px; font-size: 13px; }
+.fld input:focus { outline: none; border-color: var(--accent); }
+.hint { color: var(--muted); font-size: 11px; }
+
+/* Toast */
+.toast { position: fixed; bottom: 22px; right: 22px; background: var(--card2); border: 1px solid var(--border); color: var(--text); padding: 11px 18px; border-radius: 8px; font-size: 13px; z-index: 200; opacity: 0; transition: opacity .25s; max-width: 380px; pointer-events: none; }
+.toast.show { opacity: 1; }
+.toast.ok  { border-color: var(--green); color: var(--green); }
+.toast.err { border-color: var(--red); color: var(--red); }
+
+/* Spinner */
+.spin { display: inline-block; width: 13px; height: 13px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: rot .6s linear infinite; }
+@keyframes rot { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>Julia's Job Search</h1>
+    <div class="sub" id="sub">Loading…</div>
+  </div>
+  <button class="btn-run" id="runBtn" onclick="runSearch()">Run Daily Search</button>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="num" id="s-total">—</div><div class="lbl">Total</div></div>
+  <div class="stat"><div class="num" id="s-found" style="color:var(--muted)">—</div><div class="lbl">New</div></div>
+  <div class="stat"><div class="num" id="s-applied" style="color:var(--blue)">—</div><div class="lbl">Applied</div></div>
+  <div class="stat"><div class="num" id="s-interviewing" style="color:var(--yellow)">—</div><div class="lbl">Interviewing</div></div>
+  <div class="stat"><div class="num" id="s-offer" style="color:var(--green)">—</div><div class="lbl">Offers</div></div>
+</div>
+
+<div class="toolbar">
+  <button class="filt on"  data-s="" onclick="filt(this,'')">All</button>
+  <button class="filt" data-s="found"        onclick="filt(this,'found')">New</button>
+  <button class="filt" data-s="applied"      onclick="filt(this,'applied')">Applied</button>
+  <button class="filt" data-s="interviewing" onclick="filt(this,'interviewing')">Interviewing</button>
+  <button class="filt" data-s="offer"        onclick="filt(this,'offer')">Offers</button>
+  <button class="filt" data-s="rejected"     onclick="filt(this,'rejected')">Rejected</button>
+</div>
+
+<div class="progress" id="prog">
+  <div class="progress-head"><div class="spin"></div>Searching job boards…</div>
+  <div class="progress-log" id="plog"></div>
+</div>
+
+<div class="wrap">
+  <table>
+    <thead><tr>
+      <th>Score</th><th>Company / Role</th><th>Location</th>
+      <th>Salary</th><th>Src</th><th>Found</th><th>Status</th><th>Actions</th>
+    </tr></thead>
+    <tbody id="tbody">
+      <tr><td colspan="8"><div class="empty"><div class="spin"></div><p>Loading…</p></div></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Output modal (tailor / cover) -->
+<div class="overlay" id="outModal">
+  <div class="modal">
+    <h2 id="outTitle">Output</h2>
+    <div class="modal-body"><pre id="outPre"></pre></div>
+    <div class="modal-foot">
+      <button class="btn-sec" onclick="copyOut()">Copy</button>
+      <button class="btn-sec" onclick="closeOut()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Apply modal -->
+<div class="overlay" id="applyModal">
+  <div class="modal" style="max-width:480px;">
+    <h2>Apply for Job</h2>
+    <div class="fld">
+      <label>Resume PDF path</label>
+      <input type="text" id="resumeIn" value="C:\Users\jules\job-search-bot\resume.pdf">
+    </div>
+    <p class="hint">Bot fills the form and leaves the browser open — you review and click Submit.</p>
+    <div class="modal-foot">
+      <button class="btn-sec" onclick="closeApply()">Cancel</button>
+      <button class="btn-pri" onclick="doApply()">Open &amp; Fill Form</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let activeFilter = "";
+let applyId = null;
+let pollIv = null;
+const STATUSES = ["found","applied","interviewing","offer","rejected","skipped"];
+
+// ── boot ──────────────────────────────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+  loadStats(); loadJobs();
+  setInterval(loadStats, 20000);
+  setInterval(() => { if (!pollIv) loadJobs(); }, 30000);
+});
+
+// ── data ──────────────────────────────────────────────────────────────────────
+async function loadStats() {
+  const d = await (await fetch("/api/stats")).json();
+  ["total","found","applied","interviewing","offer"].forEach(k => {
+    const el = document.getElementById("s-"+k);
+    if (el) el.textContent = d[k] ?? 0;
+  });
+}
+
+async function loadJobs() {
+  const url = "/api/jobs" + (activeFilter ? "?status=" + activeFilter : "");
+  const jobs = await (await fetch(url)).json();
+  render(jobs);
+  document.getElementById("sub").textContent = jobs.length + " job(s) shown — updated " + new Date().toLocaleTimeString();
+}
+
+function filt(btn, s) {
+  document.querySelectorAll(".filt").forEach(b => b.classList.remove("on"));
+  btn.classList.add("on");
+  activeFilter = s;
+  loadJobs();
+}
+
+// ── render ────────────────────────────────────────────────────────────────────
+function scClass(s) { return s >= 60 ? "sc-hi" : s >= 35 ? "sc-md" : "sc-lo"; }
+function srcHtml(src) {
+  if (src === "linkedin") return '<span class="src-li">LI</span>';
+  if (src === "indeed")   return '<span class="src-in">IN</span>';
+  return '<span class="src-ca">D</span>';
+}
+function e(s) {
+  return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function render(jobs) {
+  const tb = document.getElementById("tbody");
+  if (!jobs.length) {
+    tb.innerHTML = `<tr><td colspan="8"><div class="empty">
+      <div>No jobs here</div>
+      <p>Click <strong>Run Daily Search</strong> to fetch today's top 10, or change the filter.</p>
+    </div></td></tr>`;
+    return;
+  }
+  tb.innerHTML = jobs.map(j => `
+<tr class="s-${e(j.status)}">
+  <td><span class="sc ${scClass(j.score||0)}">${j.score||0}</span></td>
+  <td>
+    <div class="co">${e(j.company)}</div>
+    <div class="jt">${e(j.title)}</div>
+    ${j.location ? `<div class="jl">${e(j.location)}</div>` : ""}
+  </td>
+  <td><span style="color:var(--muted);font-size:11px">${e(j.location||"—")}</span></td>
+  <td>${j.salary_text ? `<span class="sal">${e(j.salary_text)}</span>` : '<span class="no-sal">—</span>'}</td>
+  <td>${srcHtml(j.source)}</td>
+  <td style="color:var(--muted);font-size:11px;white-space:nowrap">${e(j.date_found||"")}</td>
+  <td>
+    <select class="ss" onchange="chStatus(${j.id},this.value)">
+      ${STATUSES.map(s=>`<option value="${s}"${j.status===s?" selected":""}>${s}</option>`).join("")}
+    </select>
+  </td>
+  <td>
+    <div class="acts">
+      <button class="ab ab-t" onclick="genTailor(${j.id})">Tailor</button>
+      <button class="ab ab-c" onclick="genCover(${j.id})">Cover</button>
+      <button class="ab ab-a" onclick="openApply(${j.id})">Apply</button>
+      <button class="ab ab-lk" onclick="window.open('${e(j.url)}','_blank')" title="Open listing">↗</button>
+      <button class="ab ab-sk" onclick="skipJob(${j.id})">Skip</button>
+    </div>
+  </td>
+</tr>`).join("");
+}
+
+// ── actions ───────────────────────────────────────────────────────────────────
+async function chStatus(id, s) {
+  await post(`/api/status/${id}`, {status: s});
+  loadStats();
+  toast("Status → " + s, "ok");
+}
+
+async function skipJob(id) {
+  await post(`/api/status/${id}`, {status: "skipped"});
+  loadJobs(); loadStats();
+  toast("Skipped", "ok");
+}
+
+async function genTailor(id) {
+  document.getElementById("outTitle").textContent = "Tailored Resume Bullets";
+  document.getElementById("outPre").textContent = "Generating with Claude…";
+  document.getElementById("outModal").classList.add("open");
+  const d = await (await post(`/api/tailor/${id}`)).json();
+  if (d.ok) {
+    document.getElementById("outTitle").textContent = `Tailored Resume — persona: ${d.persona}${d.cached?" (cached)":""}`;
+    document.getElementById("outPre").textContent = d.text;
+  } else {
+    document.getElementById("outPre").textContent = "Error: " + d.msg;
+  }
+}
+
+async function genCover(id) {
+  document.getElementById("outTitle").textContent = "Cover Letter";
+  document.getElementById("outPre").textContent = "Generating with Claude…";
+  document.getElementById("outModal").classList.add("open");
+  const d = await (await post(`/api/cover/${id}`)).json();
+  if (d.ok) {
+    document.getElementById("outTitle").textContent = `Cover Letter — persona: ${d.persona}${d.cached?" (cached)":""}`;
+    document.getElementById("outPre").textContent = d.text;
+  } else {
+    document.getElementById("outPre").textContent = "Error: " + d.msg;
+  }
+}
+
+function openApply(id) { applyId = id; document.getElementById("applyModal").classList.add("open"); }
+
+async function doApply() {
+  const resume = document.getElementById("resumeIn").value.trim();
+  if (!resume) { toast("Enter resume path", "err"); return; }
+  closeApply();
+  const d = await (await post(`/api/apply/${applyId}`, {resume_path: resume})).json();
+  toast(d.msg || (d.ok ? "Browser opened!" : "Error: " + d.msg), d.ok ? "ok" : "err");
+  if (d.ok) { loadStats(); loadJobs(); }
+}
+
+// ── search ────────────────────────────────────────────────────────────────────
+async function runSearch() {
+  const btn = document.getElementById("runBtn");
+  btn.disabled = true; btn.textContent = "Searching…";
+  const d = await (await post("/api/search")).json();
+  if (!d.ok) { toast(d.msg, "err"); btn.disabled = false; btn.textContent = "Run Daily Search"; return; }
+  document.getElementById("prog").classList.add("show");
+  pollIv = setInterval(pollSearch, 2000);
+}
+
+async function pollSearch() {
+  const d = await (await fetch("/api/search_status")).json();
+  const el = document.getElementById("plog");
+  el.innerHTML = d.log.map(l => `<div>${e(l)}</div>`).join("");
+  el.scrollTop = el.scrollHeight;
+  if (!d.running) {
+    clearInterval(pollIv); pollIv = null;
+    document.getElementById("prog").classList.remove("show");
+    document.getElementById("runBtn").disabled = false;
+    document.getElementById("runBtn").textContent = "Run Daily Search";
+    loadStats(); loadJobs();
+    toast("Search done — new jobs loaded!", "ok");
+  }
+}
+
+// ── modals ────────────────────────────────────────────────────────────────────
+function closeOut()   { document.getElementById("outModal").classList.remove("open"); }
+function closeApply() { document.getElementById("applyModal").classList.remove("open"); }
+function copyOut() {
+  navigator.clipboard.writeText(document.getElementById("outPre").textContent)
+    .then(() => toast("Copied!", "ok"));
+}
+document.getElementById("outModal").addEventListener("click", ev => { if (ev.target.id==="outModal") closeOut(); });
+document.getElementById("applyModal").addEventListener("click", ev => { if (ev.target.id==="applyModal") closeApply(); });
+
+// ── utils ─────────────────────────────────────────────────────────────────────
+function post(url, body={}) {
+  return fetch(url, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body) });
+}
+
+let toastT;
+function toast(msg, type="") {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast show" + (type ? " " + type : "");
+  clearTimeout(toastT);
+  toastT = setTimeout(() => t.classList.remove("show"), 4500);
+}
+</script>
+</body>
+</html>

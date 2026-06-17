@@ -6,20 +6,19 @@ import asyncio
 from playwright.async_api import async_playwright
 
 
-# Julia's standard field values — loaded once
 DEFAULTS = {
-    "first_name": "Julia",
-    "last_name": "Cheng",
-    "email": "juleselianac@gmail.com",
-    "phone": "(604) 230-2415",
-    "location": "Bellevue, WA",
-    "linkedin": "https://www.linkedin.com/in/juleselicheng/",
-    "work_auth": "Yes",          # authorized to work in the US
+    "first_name":          "Julia",
+    "last_name":           "Cheng",
+    "email":               "juleselianac@gmail.com",
+    "phone":               "(604) 230-2415",
+    "location":            "Bellevue, WA",
+    "linkedin":            "https://www.linkedin.com/in/juleselicheng/",
+    "work_auth":           "Yes",
     "require_sponsorship": "No",
-    "gender": "Female",
-    "ethnicity": "Asian",
-    "veteran": "No",
-    "disability": "No",
+    "gender":              "Female",
+    "ethnicity":           "Asian",
+    "veteran":             "No",
+    "disability":          "No",
 }
 
 
@@ -48,18 +47,15 @@ async def fill_greenhouse(page, resume_path: str, cover_letter_text: str = ""):
     await _fill(page, "#email", DEFAULTS["email"])
     await _fill(page, "#phone", DEFAULTS["phone"])
 
-    # Resume upload
     upload = await page.query_selector("input[type='file'][name*='resume']")
     if upload:
         await upload.set_input_files(resume_path)
 
-    # Cover letter
     if cover_letter_text:
         cl_box = await page.query_selector("textarea[name*='cover']")
         if cl_box:
             await cl_box.fill(cover_letter_text)
 
-    # LinkedIn
     li = await page.query_selector("input[id*='linkedin']")
     if li:
         await li.fill(DEFAULTS["linkedin"])
@@ -86,19 +82,16 @@ async def fill_lever(page, resume_path: str, cover_letter_text: str = ""):
 # ── Workday ───────────────────────────────────────────────────────────────────
 
 async def fill_workday(page, resume_path: str, cover_letter_text: str = ""):
-    """Workday uses shadow DOM — upload-first flow is most reliable."""
-    # Upload resume on step 1
     upload = await page.query_selector("input[type='file']")
     if upload:
         await upload.set_input_files(resume_path)
-        await page.wait_for_timeout(3000)  # parse delay
+        await page.wait_for_timeout(3000)
 
-    # Personal info fields (step 2)
     for sel, val in [
         ("[data-automation-id='legalNameSection_firstName'] input", DEFAULTS["first_name"]),
-        ("[data-automation-id='legalNameSection_lastName'] input", DEFAULTS["last_name"]),
-        ("[data-automation-id='email-address'] input", DEFAULTS["email"]),
-        ("[data-automation-id='phone-device-type'] input", DEFAULTS["phone"]),
+        ("[data-automation-id='legalNameSection_lastName'] input",  DEFAULTS["last_name"]),
+        ("[data-automation-id='email-address'] input",              DEFAULTS["email"]),
+        ("[data-automation-id='phone-device-type'] input",          DEFAULTS["phone"]),
     ]:
         await _fill(page, sel, val)
 
@@ -106,11 +99,9 @@ async def fill_workday(page, resume_path: str, cover_letter_text: str = ""):
 # ── LinkedIn Easy Apply ───────────────────────────────────────────────────────
 
 async def fill_linkedin_easy_apply(page, resume_path: str, cover_letter_text: str = ""):
-    """Step through the Easy Apply modal pages."""
-    for _ in range(10):  # max 10 pages
+    for _ in range(10):
         await page.wait_for_timeout(1000)
 
-        # Fill any visible text inputs
         for inp in await page.query_selector_all("input[type='text'], input[type='email'], input[type='tel']"):
             label_el = await inp.query_selector("xpath=../preceding-sibling::label[1]")
             label = (await label_el.inner_text()).lower() if label_el else ""
@@ -125,19 +116,18 @@ async def fill_linkedin_easy_apply(page, resume_path: str, cover_letter_text: st
             elif "city" in label or "location" in label:
                 await inp.fill(DEFAULTS["location"])
 
-        # File upload
         upload = await page.query_selector("input[type='file']")
         if upload:
             await upload.set_input_files(resume_path)
 
-        # Cover letter textarea
         if cover_letter_text:
             ta = await page.query_selector("textarea")
             if ta:
                 await ta.fill(cover_letter_text)
 
-        # Next / Submit button
-        next_btn = await page.query_selector("button[aria-label*='Continue'], button[aria-label*='Submit'], button[aria-label*='Next']")
+        next_btn = await page.query_selector(
+            "button[aria-label*='Continue'], button[aria-label*='Submit'], button[aria-label*='Next']"
+        )
         if not next_btn:
             break
         label = (await next_btn.get_attribute("aria-label") or "").lower()
@@ -176,17 +166,21 @@ async def _autofill(job_url: str, resume_path: str, cover_letter_text: str, head
         elif ats == "workday":
             await fill_workday(page, resume_path, cover_letter_text)
         elif ats == "linkedin":
-            # click Easy Apply button first
             btn = await page.query_selector("button.jobs-apply-button")
             if btn:
                 await btn.click()
                 await page.wait_for_timeout(1500)
             await fill_linkedin_easy_apply(page, resume_path, cover_letter_text)
 
-        print(f"[autofill] ATS={ats} — form filled. Review in browser before submitting.")
-        # Leave browser open for human review (headless=False) or close silently
+        print(f"[autofill] ATS={ats} — form filled. Review in browser and click Submit.")
+
         if not headless:
-            input("Press Enter to close browser...")
+            # Wait until user closes the browser tab/window (up to 10 minutes)
+            try:
+                await page.wait_for_event("close", timeout=600_000)
+            except Exception:
+                pass
+
         await browser.close()
 
 
