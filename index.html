@@ -204,7 +204,7 @@ document.addEventListener("DOMContentLoaded", loadJobs);
 
 async function loadJobs() {
   try {
-    const r = await fetch("data/jobs.json?" + Date.now());
+    const r = await fetch("https://raw.githubusercontent.com/juliaonmoon/job-search-bot/main/data/jobs.json?" + Date.now());
     const store = await r.json();
     allJobs = store.jobs || [];
     const batch = allJobs.map(j => j.daily_batch).filter(Boolean).sort().pop() || "";
