@@ -1,5 +1,5 @@
 {
-  "next_id": 3,
+  "next_id": 4,
   "jobs": [
     {
       "id": 1,
@@ -40,6 +40,28 @@
       "jd_snippet": "About Mitre Media  \n  Mitre Media is redefining FinTech with AI-driven tools that empower millions of investors. Our portfolio, including Dividend.com and MutualFunds.com, leverages LLMs to deliver novel data insights and visually rich user experiences. For over a decade, we’ve served individual investors, financial advisors, and top asset managers like BlackRock and Vanguard through our premium data, tools, and advertising solutions. Join our lean, entrepreneurial team to shape the future of AI-powered investing from your location ±3 hours from Eastern Time.  \n  Our users are deeply engaged, spending over 5 minutes per visit with a bounce rate below 10%, researching investments across hundreds of different categories. With 40 million brokerage accounts in the U.S., we take pride in buildi",
       "salary_text": "$170k - $200k",
       "score": 42,
+      "jd_full": "",
+      "tailor_output": null,
+      "cover_output": null,
+      "daily_batch": "2026-06-17"
+    },
+    {
+      "id": 3,
+      "title": "Senior Independent AI Engineer / Architect",
+      "company": "A.Team",
+      "location": "Americas, Europe, Israel",
+      "url": "https://remotive.com/remote-jobs/software-development/senior-independent-ai-engineer-architect-1919266",
+      "source": "remotive",
+      "status": "found",
+      "date_found": "2026-06-17",
+      "date_applied": null,
+      "notes": null,
+      "contact": null,
+      "follow_up": null,
+      "persona": null,
+      "jd_snippet": "Senior Independent AI Engineer / Architect \n  Remote | Americas, Europe, or Israel  \n   \n Most AI engineers can find work. \n   \n Finding work worth doing is harder. \n   \n A.Team is an invite-only network of senior AI engineers, ML engineers, and AI architects building production AI systems for startups, enterprises, and global companies. \n   \n Since 2020, builders in the network have earned more than $200M working with companies including Lyft, Google X, HCA, Unilever, Sightful, D-ID, and others. \n   \n The Work \n You'll join small teams solving real problems. \n   \n Not demos. \n Not proof-of-concepts that never ship. \n Not another thin wrapper around an API. \n  Recent work has included: \n   \n \n  AI-native products built from 0→1 \n Agent architectures and orchestration systems \n Enterprise A",
+      "salary_text": "$120 - $170 /hour",
+      "score": 35,
       "jd_full": "",
       "tailor_output": null,
       "cover_output": null,
