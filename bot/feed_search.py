@@ -8,8 +8,6 @@ import urllib.request
 import xml.etree.ElementTree as ET
 from datetime import date
 
-from bot.score import _extract_salary_hint as _sal_hint  # reuse regex
-
 
 def _extract_salary_hint(text: str) -> str:
     patterns = [
