@@ -12,7 +12,7 @@ from pathlib import Path
 from flask import Flask, jsonify, render_template, request
 
 sys.path.insert(0, str(Path(__file__).parent))
-from bot.db import (
+from bot.store import (
     get_job, get_stats, init_db, list_jobs, save_cover, save_tailor, update_status,
 )
 from bot.tailor import pick_persona, tailor_resume, write_cover_letter
@@ -156,5 +156,5 @@ def api_status(job_id):
 
 if __name__ == "__main__":
     init_db()
-    print("Job Search Dashboard → http://localhost:5056")
+    print("Job Search Dashboard: http://localhost:5056")
     app.run(host="0.0.0.0", port=5056, debug=False)
