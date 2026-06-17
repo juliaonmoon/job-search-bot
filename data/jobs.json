@@ -1,5 +1,5 @@
 {
-  "next_id": 2,
+  "next_id": 3,
   "jobs": [
     {
       "id": 1,
@@ -18,6 +18,28 @@
       "jd_snippet": "Title : Business Transformation Lead \n  Location : Fully Remote \n  Reports To : President, Service &amp; Growth \n   \n Expion Health is building the future of pharmacy economics. As architects of prescription economics, we design how pharmacy value is created, aligning cost, clinical decisions, and performance into one accountable system that moves beyond rebates. We help organizations stay ahead of pharmacy market change with clear insight, bold thinking, and strategies built for what's next-leading the next era of prescription economics. \n   \n  The Role  \n As our  Business Transformation Lead , you'll be the architect and driver of how we embed AI into the way every team in our company works. This isn't a slide-deck strategy role. You'll be on the ground with department leaders, identifyi",
       "salary_text": "$175k - $225k",
       "score": 45,
+      "jd_full": "",
+      "tailor_output": null,
+      "cover_output": null,
+      "daily_batch": "2026-06-17"
+    },
+    {
+      "id": 2,
+      "title": "Tech Lead Full-Stack Rails Engineer",
+      "company": "Mitre Media",
+      "location": "USA, Canada, USA timezones",
+      "url": "https://remotive.com/remote-jobs/software-development/tech-lead-full-stack-rails-engineer-2069746",
+      "source": "remotive",
+      "status": "found",
+      "date_found": "2026-06-17",
+      "date_applied": null,
+      "notes": null,
+      "contact": null,
+      "follow_up": null,
+      "persona": null,
+      "jd_snippet": "About Mitre Media  \n  Mitre Media is redefining FinTech with AI-driven tools that empower millions of investors. Our portfolio, including Dividend.com and MutualFunds.com, leverages LLMs to deliver novel data insights and visually rich user experiences. For over a decade, we’ve served individual investors, financial advisors, and top asset managers like BlackRock and Vanguard through our premium data, tools, and advertising solutions. Join our lean, entrepreneurial team to shape the future of AI-powered investing from your location ±3 hours from Eastern Time.  \n  Our users are deeply engaged, spending over 5 minutes per visit with a bounce rate below 10%, researching investments across hundreds of different categories. With 40 million brokerage accounts in the U.S., we take pride in buildi",
+      "salary_text": "$170k - $200k",
+      "score": 42,
       "jd_full": "",
       "tailor_output": null,
       "cover_output": null,
