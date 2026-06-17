@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Julia's Job Search</title>
+<style>
+:root {
+  --bg:     #0f0f1a;
+  --card:   #1a1a2e;
+  --card2:  #1e1e38;
+  --border: #2a2a4a;
+  --text:   #e0e0f0;
+  --muted:  #8888aa;
+  --accent: #7c3aed;
+  --green:  #22c55e;
+  --yellow: #eab308;
+  --blue:   #3b82f6;
+  --red:    #ef4444;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; }
+
+.header { background: var(--card); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+.header h1 { font-size: 18px; font-weight: 700; }
+.sub { color: var(--muted); font-size: 11px; margin-top: 2px; }
+
+.stats { display: flex; gap: 10px; padding: 16px 24px 0; }
+.stat { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 18px; flex: 1; text-align: center; }
+.stat .num { font-size: 26px; font-weight: 700; line-height: 1.1; }
+.stat .lbl { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .5px; margin-top: 3px; }
+
+.toolbar { display: flex; gap: 8px; padding: 14px 24px 10px; flex-wrap: wrap; align-items: center; }
+.filt { background: var(--card); border: 1px solid var(--border); color: var(--muted); padding: 5px 14px; border-radius: 20px; cursor: pointer; font-size: 12px; }
+.filt:hover { border-color: var(--accent); color: var(--text); }
+.filt.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.spacer { flex: 1; }
+.note { color: var(--muted); font-size: 11px; }
+
+.wrap { padding: 0 24px 32px; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+thead tr { background: var(--card); }
+th { padding: 9px 10px; text-align: left; font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tr:hover td { background: var(--card2); }
+tr.s-applied      td:first-child { border-left: 3px solid var(--blue); }
+tr.s-interviewing td:first-child { border-left: 3px solid var(--yellow); }
+tr.s-offer        td:first-child { border-left: 3px solid var(--green); }
+tr.s-rejected     td:first-child { border-left: 3px solid var(--red); }
+tr.s-skipped      { opacity: .4; }
+
+.sc { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+.sc-hi { background: #14532d33; color: var(--green); }
+.sc-md { background: #78350f33; color: var(--yellow); }
+.sc-lo { background: #1e1b4b33; color: var(--muted); }
+
+.ss { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 3px 6px; border-radius: 5px; font-size: 11px; cursor: pointer; }
+.sal { font-size: 11px; color: #86efac; }
+.no-sal { font-size: 11px; color: #444; }
+.co { font-weight: 600; font-size: 13px; }
+.jt { color: var(--muted); font-size: 12px; }
+.src-li { color: #60a5fa; font-size: 10px; font-weight: 600; }
+.src-in { color: #34d399; font-size: 10px; font-weight: 600; }
+.src-ca { color: var(--muted); font-size: 10px; }
+
+.acts { display: flex; gap: 4px; white-space: nowrap; }
+.ab { padding: 3px 9px; border-radius: 5px; border: 1px solid; cursor: pointer; font-size: 11px; font-weight: 500; }
+.ab-lk { background: transparent; color: var(--muted); border-color: var(--border); }
+.ab-lk:hover { color: var(--text); border-color: var(--muted); }
+.ab-sk { background: transparent; color: #555; border-color: #333; }
+.ab-sk:hover { background: #37415133; color: var(--muted); }
+.ab-jd { background: #312e8122; color: #a78bfa; border-color: #312e81; }
+.ab-jd:hover { background: #4c1d95; }
+.ab-ap { background: #14532d22; color: var(--green); border-color: #15803d; }
+.ab-ap:hover { background: #14532d; }
+
+.empty { text-align: center; padding: 56px; color: var(--muted); }
+.empty p { margin-top: 8px; font-size: 12px; }
+
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.72); z-index: 50; align-items: center; justify-content: center; }
+.overlay.open { display: flex; }
+.modal { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 22px; max-width: 700px; width: 96%; max-height: 82vh; display: flex; flex-direction: column; gap: 14px; }
+.modal h2 { font-size: 15px; }
+.modal-body { flex: 1; overflow-y: auto; }
+.modal pre { white-space: pre-wrap; font-size: 12px; line-height: 1.7; color: var(--text); background: var(--bg); padding: 14px; border-radius: 8px; border: 1px solid var(--border); }
+.modal-foot { display: flex; gap: 8px; justify-content: flex-end; }
+.btn-sec { background: var(--card2); border: 1px solid var(--border); color: var(--muted); padding: 7px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.btn-sec:hover { color: var(--text); }
+
+.apply-info { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; }
+.apply-info code { background: #1e1e38; padding: 2px 6px; border-radius: 4px; font-size: 12px; color: #a78bfa; }
+.apply-info p { margin-top: 8px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+
+.toast { position: fixed; bottom: 22px; right: 22px; background: var(--card2); border: 1px solid var(--border); color: var(--text); padding: 10px 16px; border-radius: 8px; font-size: 13px; z-index: 200; opacity: 0; transition: opacity .25s; pointer-events: none; }
+.toast.show { opacity: 1; }
+.toast.ok { border-color: var(--green); color: var(--green); }
+
+.spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: rot .6s linear infinite; }
+@keyframes rot { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>Julia's Job Search</h1>
+    <div class="sub" id="sub">Loading…</div>
+  </div>
+  <span class="note" id="lastUpdated"></span>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="num" id="s-total">—</div><div class="lbl">Total</div></div>
+  <div class="stat"><div class="num" id="s-found" style="color:var(--muted)">—</div><div class="lbl">New</div></div>
+  <div class="stat"><div class="num" id="s-applied" style="color:var(--blue)">—</div><div class="lbl">Applied</div></div>
+  <div class="stat"><div class="num" id="s-interviewing" style="color:var(--yellow)">—</div><div class="lbl">Interviewing</div></div>
+  <div class="stat"><div class="num" id="s-offer" style="color:var(--green)">—</div><div class="lbl">Offers</div></div>
+</div>
+
+<div class="toolbar">
+  <button class="filt on" onclick="filt(this,'')">All</button>
+  <button class="filt" onclick="filt(this,'found')">New</button>
+  <button class="filt" onclick="filt(this,'applied')">Applied</button>
+  <button class="filt" onclick="filt(this,'interviewing')">Interviewing</button>
+  <button class="filt" onclick="filt(this,'offer')">Offers</button>
+  <button class="filt" onclick="filt(this,'rejected')">Rejected</button>
+  <span class="spacer"></span>
+  <span class="note">Status saves in this browser. Tailor/apply → run CLI locally.</span>
+</div>
+
+<div class="wrap">
+  <table>
+    <thead><tr>
+      <th>Score</th><th>Company / Role</th><th>Salary</th>
+      <th>Src</th><th>Found</th><th>Status</th><th>Actions</th>
+    </tr></thead>
+    <tbody id="tbody">
+      <tr><td colspan="7"><div class="empty"><div class="spin"></div><p>Loading jobs…</p></div></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- JD modal -->
+<div class="overlay" id="jdModal">
+  <div class="modal">
+    <h2 id="jdTitle">Job Details</h2>
+    <div class="modal-body"><pre id="jdPre"></pre></div>
+    <div class="modal-foot">
+      <button class="btn-sec" onclick="copyJd()">Copy JD</button>
+      <button class="btn-sec" onclick="closeJd()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Apply modal -->
+<div class="overlay" id="applyModal">
+  <div class="modal" style="max-width:520px;">
+    <h2>Apply for this job</h2>
+    <div class="apply-info">
+      <p>Run these commands in your terminal (laptop must be on):</p>
+      <p><code id="applyCmd1"></code></p>
+      <p><code id="applyCmd2"></code></p>
+      <p style="margin-top:12px;">The bot fills the ATS form and leaves the browser open for you to review and click Submit.</p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-sec" onclick="copyApplyCmd()">Copy Commands</button>
+      <button class="btn-sec" onclick="closeApply()">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STATUSES = ["found","applied","interviewing","offer","rejected","skipped"];
+const STATUS_KEY = "job_statuses_v1";
+const CLI_DIR = "C:\\Users\\jules\\job-search-bot";
+
+let allJobs = [];
+let activeFilter = "";
+let applyJobId = null;
+
+// ── localStorage status store ─────────────────────────────────────────────────
+function getStatuses() { try { return JSON.parse(localStorage.getItem(STATUS_KEY) || "{}"); } catch { return {}; } }
+function setStatus(url, status) {
+  const s = getStatuses();
+  s[url] = { status, updated: new Date().toISOString() };
+  localStorage.setItem(STATUS_KEY, JSON.stringify(s));
+}
+function jobStatus(job) {
+  const s = getStatuses();
+  return (s[job.url] && s[job.url].status) || job.status || "found";
+}
+
+// ── boot ──────────────────────────────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", loadJobs);
+
+async function loadJobs() {
+  try {
+    const r = await fetch("data/jobs.json?" + Date.now());
+    const store = await r.json();
+    allJobs = store.jobs || [];
+    const batch = allJobs.map(j => j.daily_batch).filter(Boolean).sort().pop() || "";
+    document.getElementById("lastUpdated").textContent = batch ? "Last updated: " + batch : "";
+    renderAll();
+  } catch (e) {
+    document.getElementById("tbody").innerHTML =
+      `<tr><td colspan="7"><div class="empty">Could not load jobs.json<p>${e}</p></div></td></tr>`;
+  }
+}
+
+// ── render ────────────────────────────────────────────────────────────────────
+function scClass(s) { return s >= 60 ? "sc-hi" : s >= 35 ? "sc-md" : "sc-lo"; }
+function srcHtml(src) {
+  if (src === "linkedin") return '<span class="src-li">LI</span>';
+  if (src === "indeed")   return '<span class="src-in">IN</span>';
+  return '<span class="src-ca">D</span>';
+}
+function e(s) {
+  return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function renderAll() {
+  const statuses = getStatuses();
+  // merge stored statuses into jobs
+  const jobs = allJobs.map(j => ({ ...j, status: (statuses[j.url]?.status) || j.status || "found" }));
+
+  // stats
+  const counts = {};
+  jobs.forEach(j => counts[j.status] = (counts[j.status]||0)+1);
+  document.getElementById("s-total").textContent       = jobs.length;
+  document.getElementById("s-found").textContent       = counts.found || 0;
+  document.getElementById("s-applied").textContent     = counts.applied || 0;
+  document.getElementById("s-interviewing").textContent= counts.interviewing || 0;
+  document.getElementById("s-offer").textContent       = counts.offer || 0;
+  document.getElementById("sub").textContent = jobs.length + " job(s) tracked";
+
+  const filtered = activeFilter ? jobs.filter(j => j.status === activeFilter) : jobs;
+  const sorted = [...filtered].sort((a,b) => (b.score||0)-(a.score||0));
+
+  const tb = document.getElementById("tbody");
+  if (!sorted.length) {
+    tb.innerHTML = `<tr><td colspan="7"><div class="empty">No jobs here<p>Change filter or wait for tomorrow's daily search.</p></div></td></tr>`;
+    return;
+  }
+  tb.innerHTML = sorted.map(j => `
+<tr class="s-${e(j.status)}">
+  <td><span class="sc ${scClass(j.score||0)}">${j.score||0}</span></td>
+  <td>
+    <div class="co">${e(j.company)}</div>
+    <div class="jt">${e(j.title)}</div>
+    ${j.location ? `<div style="color:#555;font-size:11px">${e(j.location)}</div>` : ""}
+  </td>
+  <td>${j.salary_text ? `<span class="sal">${e(j.salary_text)}</span>` : '<span class="no-sal">—</span>'}</td>
+  <td>${srcHtml(j.source)}</td>
+  <td style="color:var(--muted);font-size:11px;white-space:nowrap">${e(j.date_found||"")}</td>
+  <td>
+    <select class="ss" onchange="chStatus('${e(j.url)}', this.value)">
+      ${STATUSES.map(s=>`<option value="${s}"${j.status===s?" selected":""}>${s}</option>`).join("")}
+    </select>
+  </td>
+  <td>
+    <div class="acts">
+      ${(j.jd_full||j.jd_snippet) ? `<button class="ab ab-jd" onclick='showJd(${j.id})'>JD</button>` : ""}
+      <button class="ab ab-lk" onclick="window.open('${e(j.url)}','_blank')" title="Open listing">↗</button>
+      <button class="ab ab-ap" onclick="showApply(${j.id})">Apply</button>
+      <button class="ab ab-sk" onclick="skip('${e(j.url)}')">Skip</button>
+    </div>
+  </td>
+</tr>`).join("");
+}
+
+function filt(btn, s) {
+  document.querySelectorAll(".filt").forEach(b => b.classList.remove("on"));
+  btn.classList.add("on");
+  activeFilter = s;
+  renderAll();
+}
+
+function chStatus(url, status) {
+  setStatus(url, status);
+  renderAll();
+  toast("Status → " + status, "ok");
+}
+
+function skip(url) {
+  setStatus(url, "skipped");
+  renderAll();
+  toast("Skipped", "ok");
+}
+
+// ── JD modal ──────────────────────────────────────────────────────────────────
+let jdText = "";
+function showJd(id) {
+  const j = allJobs.find(x => x.id === id);
+  if (!j) return;
+  document.getElementById("jdTitle").textContent = j.title + " — " + j.company;
+  jdText = j.jd_full || j.jd_snippet || "";
+  document.getElementById("jdPre").textContent = jdText;
+  document.getElementById("jdModal").classList.add("open");
+}
+function closeJd() { document.getElementById("jdModal").classList.remove("open"); }
+function copyJd() {
+  navigator.clipboard.writeText(jdText).then(() => toast("JD copied!", "ok"));
+}
+document.getElementById("jdModal").addEventListener("click", ev => { if (ev.target.id==="jdModal") closeJd(); });
+
+// ── Apply modal ───────────────────────────────────────────────────────────────
+let applyCmd = "";
+function showApply(id) {
+  const j = allJobs.find(x => x.id === id);
+  if (!j) return;
+  const cmd1 = `cd "${CLI_DIR}"`;
+  const cmd2 = `python cli.py apply ${id} --resume "C:\\Users\\jules\\job-search-bot\\resume.pdf" --cover`;
+  document.getElementById("applyCmd1").textContent = cmd1;
+  document.getElementById("applyCmd2").textContent = cmd2;
+  applyCmd = cmd1 + "\n" + cmd2;
+  document.getElementById("applyModal").classList.add("open");
+}
+function closeApply() { document.getElementById("applyModal").classList.remove("open"); }
+function copyApplyCmd() {
+  navigator.clipboard.writeText(applyCmd).then(() => toast("Commands copied!", "ok"));
+}
+document.getElementById("applyModal").addEventListener("click", ev => { if (ev.target.id==="applyModal") closeApply(); });
+
+// ── toast ─────────────────────────────────────────────────────────────────────
+let toastT;
+function toast(msg, type="") {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast show" + (type ? " " + type : "");
+  clearTimeout(toastT);
+  toastT = setTimeout(() => t.classList.remove("show"), 4000);
+}
+</script>
+</body>
+</html>
