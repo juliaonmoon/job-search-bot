@@ -95,6 +95,9 @@ tr.s-skipped      { opacity: .4; }
 .toast.show { opacity: 1; }
 .toast.ok { border-color: var(--green); color: var(--green); }
 
+.btn-run { background: var(--accent); color: #fff; border: none; padding: 7px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; white-space: nowrap; }
+.btn-run:hover { background: #6d28d9; }
+.btn-run:disabled { opacity: .5; cursor: not-allowed; }
 .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: rot .6s linear infinite; }
 @keyframes rot { to { transform: rotate(360deg); } }
 </style>
@@ -106,7 +109,11 @@ tr.s-skipped      { opacity: .4; }
     <h1>Julia's Job Search</h1>
     <div class="sub" id="sub">Loading…</div>
   </div>
-  <span class="note" id="lastUpdated"></span>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <span class="note" id="lastUpdated"></span>
+    <button class="btn-run" id="runBtn" onclick="runSearch()">Run Search Now</button>
+    <span class="note" id="runStatus" style="min-width:120px"></span>
+  </div>
 </div>
 
 <div class="stats">
@@ -322,6 +329,60 @@ function copyApplyCmd() {
   navigator.clipboard.writeText(applyCmd).then(() => toast("Commands copied!", "ok"));
 }
 document.getElementById("applyModal").addEventListener("click", ev => { if (ev.target.id==="applyModal") closeApply(); });
+
+// ── run search ───────────────────────────────────────────────────────────────
+const GH_REPO = "juliaonmoon/job-search-bot";
+const GH_WORKFLOW = "daily_search.yml";
+const TOKEN_KEY = "gh_token";
+
+function getToken() { return localStorage.getItem(TOKEN_KEY) || ""; }
+
+async function runSearch() {
+  let token = getToken();
+  if (!token) {
+    token = prompt("Enter a GitHub Personal Access Token with 'workflow' scope.\n(Saved in your browser only, never sent anywhere else.)");
+    if (!token) return;
+    localStorage.setItem(TOKEN_KEY, token.trim());
+    token = token.trim();
+  }
+
+  const btn = document.getElementById("runBtn");
+  const status = document.getElementById("runStatus");
+  btn.disabled = true;
+  status.innerHTML = '<span class="spin"></span> Triggering…';
+
+  const r = await fetch(
+    `https://api.github.com/repos/${GH_REPO}/actions/workflows/${GH_WORKFLOW}/dispatches`,
+    {
+      method: "POST",
+      headers: {
+        "Authorization": `token ${token}`,
+        "Accept": "application/vnd.github.v3+json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ ref: "main" }),
+    }
+  );
+
+  if (r.status === 204) {
+    status.textContent = "Started! (~3 min to finish)";
+    toast("Search triggered — jobs will appear in ~3 minutes", "ok");
+    // Re-enable after 3 min and reload data
+    setTimeout(() => {
+      btn.disabled = false;
+      status.textContent = "";
+      loadJobs();
+    }, 180000);
+  } else if (r.status === 401) {
+    localStorage.removeItem(TOKEN_KEY);
+    status.textContent = "Token invalid — try again";
+    btn.disabled = false;
+    toast("Invalid token — cleared, try again", "");
+  } else {
+    status.textContent = "Error " + r.status;
+    btn.disabled = false;
+  }
+}
 
 // ── toast ─────────────────────────────────────────────────────────────────────
 let toastT;
