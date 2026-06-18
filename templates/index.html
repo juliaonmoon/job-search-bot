@@ -342,7 +342,6 @@ async function doApply() {
   closeApply();
   const d = await (await post(`/api/apply/${applyId}`, {resume_path: resume})).json();
   toast(d.msg || (d.ok ? "Browser opened!" : "Error: " + d.msg), d.ok ? "ok" : "err");
-  if (d.ok) { loadStats(); loadJobs(); }
 }
 
 // ── search ────────────────────────────────────────────────────────────────────
