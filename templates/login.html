@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Login — Julia's Job Search</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #0f0f1a;
+  color: #e0e0f0;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.card {
+  background: #1a1a2e;
+  border: 1px solid #2a2a4a;
+  border-radius: 12px;
+  padding: 36px 40px;
+  width: 360px;
+  text-align: center;
+}
+h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.sub { color: #8888aa; font-size: 12px; margin-bottom: 28px; }
+.error {
+  background: #3b0a0a;
+  border: 1px solid #7f1d1d;
+  color: #fca5a5;
+  border-radius: 6px;
+  padding: 9px 14px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+input[type=password] {
+  width: 100%;
+  background: #0f0f1a;
+  border: 1px solid #2a2a4a;
+  color: #e0e0f0;
+  padding: 11px 14px;
+  border-radius: 8px;
+  font-size: 15px;
+  margin-bottom: 16px;
+  letter-spacing: 2px;
+}
+input[type=password]:focus {
+  outline: none;
+  border-color: #7c3aed;
+}
+input[type=password]::placeholder { letter-spacing: 0; }
+button {
+  width: 100%;
+  background: #7c3aed;
+  color: #fff;
+  border: none;
+  padding: 11px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+button:hover { background: #6d28d9; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>🔍 Job Search</h1>
+  <div class="sub">Julia's personal dashboard</div>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="error">{{ messages[0] }}</div>
+    {% endif %}
+  {% endwith %}
+
+  <form method="post">
+    <input type="password" name="password" placeholder="Password" autofocus autocomplete="current-password">
+    <button type="submit">Log In</button>
+  </form>
+</div>
+</body>
+</html>

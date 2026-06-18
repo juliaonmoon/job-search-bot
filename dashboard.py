@@ -9,7 +9,15 @@ import sys
 import threading
 from pathlib import Path
 
-from flask import Flask, jsonify, render_template, request
+import os
+from functools import wraps
+from flask import Flask, jsonify, render_template, request, session, redirect, url_for, flash
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).parent / ".env")
+except ImportError:
+    pass
 
 sys.path.insert(0, str(Path(__file__).parent))
 from bot.store import (
@@ -18,6 +26,18 @@ from bot.store import (
 from bot.tailor import pick_persona, tailor_resume, write_cover_letter
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("WEB_SECRET", "job-search-secret-change-me")
+WEB_PASSWORD = os.environ.get("WEB_PASSWORD", "julia2026")
+
+
+def login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get("logged_in"):
+            return redirect(url_for("login"))
+        return f(*args, **kwargs)
+    return decorated
+
 
 DEFAULT_RESUME = r"C:\Users\jules\job-search-bot\resume.pdf"
 
@@ -28,18 +48,37 @@ _search_lock = threading.Lock()
 
 # ── routes ────────────────────────────────────────────────────────────────────
 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        if request.form.get("password") == WEB_PASSWORD:
+            session["logged_in"] = True
+            return redirect(url_for("index"))
+        flash("Wrong password.")
+    return render_template("login.html")
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+
 @app.route("/")
+@login_required
 def index():
     return render_template("index.html")
 
 
 @app.route("/api/jobs")
+@login_required
 def api_jobs():
     status = request.args.get("status") or None
     return jsonify(list_jobs(status=status))
 
 
 @app.route("/api/stats")
+@login_required
 def api_stats():
     stats = get_stats()
     stats["total"] = sum(stats.values())
@@ -47,6 +86,7 @@ def api_stats():
 
 
 @app.route("/api/search", methods=["POST"])
+@login_required
 def api_search():
     global _search_running, _search_log
     with _search_lock:
@@ -84,12 +124,14 @@ def api_search():
 
 
 @app.route("/api/search_status")
+@login_required
 def api_search_status():
     with _search_lock:
         return jsonify({"running": _search_running, "log": list(_search_log[-30:])})
 
 
 @app.route("/api/tailor/<int:job_id>", methods=["POST"])
+@login_required
 def api_tailor(job_id):
     job = get_job(job_id)
     if not job:
@@ -105,6 +147,7 @@ def api_tailor(job_id):
 
 
 @app.route("/api/cover/<int:job_id>", methods=["POST"])
+@login_required
 def api_cover(job_id):
     job = get_job(job_id)
     if not job:
@@ -119,6 +162,7 @@ def api_cover(job_id):
 
 
 @app.route("/api/apply/<int:job_id>", methods=["POST"])
+@login_required
 def api_apply(job_id):
     job = get_job(job_id)
     if not job:
@@ -143,6 +187,7 @@ def api_apply(job_id):
 
 
 @app.route("/api/status/<int:job_id>", methods=["POST"])
+@login_required
 def api_status(job_id):
     data = request.get_json() or {}
     new_status = data.get("status")
