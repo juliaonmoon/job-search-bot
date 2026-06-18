@@ -170,6 +170,10 @@ def api_apply(job_id):
 
     data = request.get_json() or {}
     resume_path = data.get("resume_path") or DEFAULT_RESUME
+
+    if not Path(resume_path).is_file():
+        return jsonify({"ok": False, "msg": f"Resume file not found: {resume_path}"}), 400
+
     cover = job.get("cover_output") or ""
 
     script = (
@@ -182,8 +186,9 @@ def api_apply(job_id):
         kwargs["creationflags"] = subprocess.CREATE_NEW_CONSOLE
     subprocess.Popen([sys.executable, "-c", script], **kwargs)
 
-    update_status(job_id, "applied")
-    return jsonify({"ok": True, "msg": "Browser opened — review the form and click Submit when ready."})
+    # Status is NOT automatically set to "applied" — the browser opened but you haven't
+    # submitted yet. Change the status yourself after you click Submit in the browser.
+    return jsonify({"ok": True, "msg": "Browser opened — fill the form and click Submit. Then change status to Applied here."})
 
 
 @app.route("/api/status/<int:job_id>", methods=["POST"])
