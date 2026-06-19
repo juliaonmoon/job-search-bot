@@ -30,7 +30,7 @@ def _check_api_key():
 def _client():
     key = _check_api_key()
     genai.configure(api_key=key)
-    return genai.GenerativeModel("gemini-1.5-flash")
+    return genai.GenerativeModel("gemini-2.5-flash")
 
 
 def _profile() -> str:
