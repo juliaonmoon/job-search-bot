@@ -1,8 +1,26 @@
 """Job board scrapers using Playwright."""
 import asyncio
 import re
+from datetime import date, timedelta
 from playwright.async_api import async_playwright, TimeoutError as PWTimeout
 from bot.db import add_job
+
+
+def _parse_relative_date(text: str) -> str:
+    """'Posted 2 days ago' / 'Just posted' → YYYY-MM-DD, or empty string."""
+    t = (text or "").lower()
+    if "just posted" in t or "today" in t:
+        return date.today().isoformat()
+    m = re.search(r'(\d+)\s+hour', t)
+    if m:
+        return date.today().isoformat()
+    m = re.search(r'(\d+)\s+day', t)
+    if m:
+        return (date.today() - timedelta(days=int(m.group(1)))).isoformat()
+    m = re.search(r'(\d+)\s+week', t)
+    if m:
+        return (date.today() - timedelta(weeks=int(m.group(1)))).isoformat()
+    return ""
 
 
 # ── helpers ──────────────────────────────────────────────────────────────────
@@ -64,17 +82,24 @@ async def search_linkedin(keywords: str, location: str = "Seattle, WA",
                     loc_el     = await card.query_selector(".job-search-card__location")
                     link_el    = await card.query_selector("a.base-card__full-link")
                     sal_el     = await card.query_selector(".job-search-card__salary-info")
+                    time_el    = await card.query_selector("time")
 
                     title   = (await title_el.inner_text()).strip()   if title_el   else ""
                     company = (await company_el.inner_text()).strip() if company_el else ""
                     loc     = (await loc_el.inner_text()).strip()     if loc_el     else ""
                     href    = await link_el.get_attribute("href")     if link_el    else ""
                     salary  = (await sal_el.inner_text()).strip()     if sal_el     else ""
+                    date_posted = ""
+                    if time_el:
+                        date_posted = await time_el.get_attribute("datetime") or ""
+                        if not date_posted:
+                            date_posted = _parse_relative_date(await time_el.inner_text())
 
                     if title and company:
                         results.append({
                             "title": title, "company": company, "location": loc,
                             "url": href, "source": "linkedin", "salary_text": salary,
+                            "date_posted": date_posted,
                         })
                 except Exception:
                     continue
@@ -111,12 +136,16 @@ async def search_indeed(keywords: str, location: str = "Bellevue, WA",
                     loc_el     = await card.query_selector("[data-testid='text-location']")
                     link_el    = await card.query_selector("h2.jobTitle a")
                     sal_el     = await card.query_selector("[data-testid='attribute_snippet_testid']")
+                    date_el    = await card.query_selector("[data-testid='myJobsStateDate'], .date, span.date")
 
                     title   = (await title_el.inner_text()).strip()   if title_el   else ""
                     company = (await company_el.inner_text()).strip() if company_el else ""
                     loc     = (await loc_el.inner_text()).strip()     if loc_el     else ""
                     href    = await link_el.get_attribute("href")     if link_el    else ""
                     salary  = (await sal_el.inner_text()).strip()     if sal_el     else ""
+                    date_posted = _parse_relative_date(
+                        await date_el.inner_text() if date_el else ""
+                    )
 
                     if href and not href.startswith("http"):
                         href = "https://www.indeed.com" + href
@@ -125,6 +154,7 @@ async def search_indeed(keywords: str, location: str = "Bellevue, WA",
                         results.append({
                             "title": title, "company": company, "location": loc,
                             "url": href, "source": "indeed", "salary_text": salary,
+                            "date_posted": date_posted,
                         })
                 except Exception:
                     continue

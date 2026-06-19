@@ -172,7 +172,7 @@ tr.s-skipped      { opacity: .45; }
   <table>
     <thead><tr>
       <th>Score</th><th>Company / Role</th><th>Location</th>
-      <th>Salary</th><th>Src</th><th>Found</th><th>Status</th><th>Actions</th>
+      <th>Salary</th><th>Src</th><th>Posted</th><th>Status</th><th>Actions</th>
     </tr></thead>
     <tbody id="tbody">
       <tr><td colspan="8"><div class="empty"><div class="spin"></div><p>Loading…</p></div></td></tr>
@@ -277,7 +277,7 @@ function render(jobs) {
   <td><span style="color:var(--muted);font-size:11px">${e(j.location||"—")}</span></td>
   <td>${j.salary_text ? `<span class="sal">${e(j.salary_text)}</span>` : '<span class="no-sal">—</span>'}</td>
   <td>${srcHtml(j.source)}</td>
-  <td style="color:var(--muted);font-size:11px;white-space:nowrap">${e(j.date_found||"")}</td>
+  <td style="color:var(--muted);font-size:11px;white-space:nowrap">${e(j.date_posted||j.date_found||"")}</td>
   <td>
     <select class="ss" onchange="chStatus(${j.id},this.value)">
       ${STATUSES.map(s=>`<option value="${s}"${j.status===s?" selected":""}>${s}</option>`).join("")}

@@ -131,7 +131,7 @@ def init_db():
 
 def add_job(title, company, location, url, source,
             jd_snippet="", salary_text="", score=0,
-            jd_full="", daily_batch="") -> bool:
+            jd_full="", daily_batch="", date_posted="") -> bool:
     """Add a job if URL not already present. Returns True if new."""
     store = _load()
     if any(j["url"] == url for j in store["jobs"]):
@@ -145,6 +145,7 @@ def add_job(title, company, location, url, source,
         "source":       source,
         "status":       "found",
         "date_found":   date.today().isoformat(),
+        "date_posted":  date_posted,
         "date_applied": None,
         "notes":        None,
         "contact":      None,
