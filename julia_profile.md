@@ -261,11 +261,32 @@
 
 ---
 
-## Job Search Preferences (TO BE FILLED)
-- Target roles: TBD
-- Target locations: US (Bellevue/WA area) + Europe (open)
-- Remote/hybrid/onsite preference: TBD
-- Salary range: TBD
-- Company size preference: TBD
-- Industries of interest: TBD
-- Companies to target / avoid: TBD
+## Job Search Preferences
+
+### Target Role
+- **Title:** Technical Program Manager (TPM) — senior / staff level
+- **Technical domains (in priority order):**
+  1. Cloud infrastructure & platform (AWS/Azure/GCP, DevOps, DevSecOps, SRE, observability)
+  2. AI / ML platform & Agentic AI programs
+  3. Data & Analytics platform (data governance, data maturity, BI infrastructure)
+  4. Network engineering / security (IAM, secret management, encryption, zero-downtime)
+  - *(Skip roles that are pure IT ops, non-technical PMO, or generic delivery management with no infra/AI/data angle)*
+
+### Target Locations
+- US: Bellevue / Seattle WA area (hybrid or remote-friendly)
+- Europe: open (remote preferred)
+
+### Salary — Hard Filter
+- **Canada:** 130,000 CAD base minimum
+- **US:** ~150,000 USD base minimum (mid-high range for senior TPM in Seattle market)
+- **Rule:** Skip any posting that does not list a salary range **unless** the company is a recognized top-tier / mega-cap tech firm (e.g. Google, Microsoft, Amazon, Meta, Apple, Nvidia, Salesforce, Adobe, EA, etc.) where market comp is well-known
+- Salary filter applies before any tailoring or outreach — don't waste time on opaque postings from unknown companies
+
+### Remote / Hybrid / Onsite
+- TBD (to fill in)
+
+### Company Size
+- TBD (to fill in)
+
+### Companies to Target / Avoid
+- TBD (to fill in)

@@ -144,15 +144,40 @@ def api_cover(job_id):
     return jsonify({"ok": True, "persona": persona, "text": text})
 
 
+PYTHON_EXE = r"C:\Users\jules\AppData\Local\Programs\Python\Python312\python.exe"
+PROJECT_DIR = str(Path(__file__).parent)
+
+
 @app.route("/api/apply/<int:job_id>", methods=["POST"])
 @login_required
 def api_apply(job_id):
     job = get_job(job_id)
     if not job:
         return jsonify({"ok": False, "msg": "Job not found"}), 404
-    import webbrowser
-    webbrowser.open(job["url"])
-    return jsonify({"ok": True, "msg": "Job opened in your browser — apply and then mark as Applied here."})
+
+    import tempfile
+    bat_content = (
+        f"@echo off\r\n"
+        f"cd /d {PROJECT_DIR}\r\n"
+        f'"{PYTHON_EXE}" bot\\autofill_runner.py {job_id}\r\n'
+        f"pause\r\n"
+    )
+    tmp = tempfile.NamedTemporaryFile(
+        mode="w", suffix=".bat", delete=False,
+        dir=tempfile.gettempdir(), encoding="utf-8"
+    )
+    tmp.write(bat_content)
+    tmp.close()
+
+    os.startfile(tmp.name)
+
+    return jsonify({
+        "ok": True,
+        "msg": (
+            f"Autofill launched for {job['title']} @ {job['company']}. "
+            "A browser will open — fill any missed fields, then click Submit yourself."
+        ),
+    })
 
 
 @app.route("/api/status/<int:job_id>", methods=["POST"])
