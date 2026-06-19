@@ -20,8 +20,19 @@ def _profile() -> str:
     return PROFILE_PATH.read_text(encoding="utf-8")
 
 
+def _check_api_key():
+    key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not key or key.startswith("sk-ant-..."):
+        raise ValueError(
+            "ANTHROPIC_API_KEY not set. Add it to your .env file:\n"
+            "  ANTHROPIC_API_KEY=sk-ant-your-key-here\n"
+            "Get a key at https://console.anthropic.com"
+        )
+
+
 def pick_persona(jd: str) -> str:
     """Ask Claude to pick the best persona given a JD."""
+    _check_api_key()
     client = anthropic.Anthropic()
     hint_list = "\n".join(f"- {k}: {v}" for k, v in PERSONA_HINTS.items())
     msg = client.messages.create(

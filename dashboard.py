@@ -140,8 +140,11 @@ def api_tailor(job_id):
     if job.get("tailor_output"):
         return jsonify({"ok": True, "persona": job.get("persona", "—"), "text": job["tailor_output"], "cached": True})
     jd = job.get("jd_full") or job.get("jd_snippet") or f"{job['title']} at {job['company']}"
-    persona = pick_persona(jd)
-    text = tailor_resume(jd, persona)
+    try:
+        persona = pick_persona(jd)
+        text = tailor_resume(jd, persona)
+    except Exception as e:
+        return jsonify({"ok": False, "msg": str(e)}), 400
     save_tailor(job_id, text, persona)
     return jsonify({"ok": True, "persona": persona, "text": text})
 
@@ -155,8 +158,11 @@ def api_cover(job_id):
     if job.get("cover_output"):
         return jsonify({"ok": True, "persona": job.get("persona", "—"), "text": job["cover_output"], "cached": True})
     jd = job.get("jd_full") or job.get("jd_snippet") or f"{job['title']} at {job['company']}"
-    persona = pick_persona(jd)
-    text = write_cover_letter(jd, job["company"], job["title"], persona)
+    try:
+        persona = pick_persona(jd)
+        text = write_cover_letter(jd, job["company"], job["title"], persona)
+    except Exception as e:
+        return jsonify({"ok": False, "msg": str(e)}), 400
     save_cover(job_id, text)
     return jsonify({"ok": True, "persona": persona, "text": text})
 
@@ -170,25 +176,25 @@ def api_apply(job_id):
 
     data = request.get_json() or {}
     resume_path = data.get("resume_path") or DEFAULT_RESUME
-
-    if not Path(resume_path).is_file():
-        return jsonify({"ok": False, "msg": f"Resume file not found: {resume_path}"}), 400
+    resume_exists = bool(resume_path) and Path(resume_path).is_file()
 
     cover = job.get("cover_output") or ""
 
     script = (
         f"import sys; sys.path.insert(0, r'{Path(__file__).parent}')\n"
         f"from bot.autofill import autofill\n"
-        f"autofill({repr(job['url'])}, {repr(resume_path)}, {repr(cover)}, headless=False)\n"
+        f"autofill({repr(job['url'])}, {repr(resume_path if resume_exists else '')}, {repr(cover)}, headless=False)\n"
     )
     kwargs = {}
     if sys.platform == "win32":
         kwargs["creationflags"] = subprocess.CREATE_NEW_CONSOLE
     subprocess.Popen([sys.executable, "-c", script], **kwargs)
 
-    # Status is NOT automatically set to "applied" — the browser opened but you haven't
-    # submitted yet. Change the status yourself after you click Submit in the browser.
-    return jsonify({"ok": True, "msg": "Browser opened — fill the form and click Submit. Then change status to Applied here."})
+    if resume_exists:
+        msg = "Browser opened — form pre-filled. Review and click Submit, then mark as Applied here."
+    else:
+        msg = "Browser opened — no local resume PDF found, upload it manually in the form. Then mark as Applied here."
+    return jsonify({"ok": True, "msg": msg})
 
 
 @app.route("/api/status/<int:job_id>", methods=["POST"])
