@@ -2,8 +2,17 @@
 import asyncio
 import re
 from datetime import date, timedelta
+from urllib.parse import urlparse, urlunparse
 from playwright.async_api import async_playwright, TimeoutError as PWTimeout
 from bot.db import add_job
+
+
+def _normalize_url(url: str) -> str:
+    """Strip query string and fragment — keeps only scheme+host+path."""
+    if not url:
+        return url
+    p = urlparse(url)
+    return urlunparse((p.scheme, p.netloc, p.path, "", "", ""))
 
 
 def _parse_relative_date(text: str) -> str:
@@ -98,7 +107,7 @@ async def search_linkedin(keywords: str, location: str = "Seattle, WA",
                     if title and company:
                         results.append({
                             "title": title, "company": company, "location": loc,
-                            "url": href, "source": "linkedin", "salary_text": salary,
+                            "url": _normalize_url(href), "source": "linkedin", "salary_text": salary,
                             "date_posted": date_posted,
                         })
                 except Exception:
@@ -153,7 +162,7 @@ async def search_indeed(keywords: str, location: str = "Bellevue, WA",
                     if title and company:
                         results.append({
                             "title": title, "company": company, "location": loc,
-                            "url": href, "source": "indeed", "salary_text": salary,
+                            "url": _normalize_url(href), "source": "indeed", "salary_text": salary,
                             "date_posted": date_posted,
                         })
                 except Exception:
