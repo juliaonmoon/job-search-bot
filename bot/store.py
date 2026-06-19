@@ -9,6 +9,7 @@ Provides the same interface as bot/db.py so callers can swap freely.
 import base64
 import json
 import os
+import re
 import time
 from datetime import date
 from pathlib import Path
@@ -137,13 +138,24 @@ def init_db():
         _save({"next_id": 1, "jobs": []})
 
 
+def _norm_title(t: str) -> str:
+    """Lowercase, strip punctuation/whitespace for title comparison."""
+    return re.sub(r'[^a-z0-9 ]', '', t.lower()).strip()
+
+
 def add_job(title, company, location, url, source,
             jd_snippet="", salary_text="", score=0,
             jd_full="", daily_batch="", date_posted="") -> bool:
-    """Add a job if URL not already present. Returns True if new."""
+    """Add a job if URL or title+company not already present. Returns True if new."""
     store = _load()
     url = _norm(url)
+    # Dedup by normalized URL
     if any(_norm(j["url"]) == url for j in store["jobs"]):
+        return False
+    # Dedup by title+company (catches same role posted with different tracking IDs)
+    nt, nc = _norm_title(title), _norm_title(company)
+    if any(_norm_title(j["title"]) == nt and _norm_title(j["company"]) == nc
+           for j in store["jobs"]):
         return False
     job = {
         "id":           store["next_id"],
