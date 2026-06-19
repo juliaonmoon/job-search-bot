@@ -148,6 +148,10 @@ PYTHON_EXE = r"C:\Users\jules\AppData\Local\Programs\Python\Python312\python.exe
 PROJECT_DIR = str(Path(__file__).parent)
 
 
+def _is_linkedin_url(url: str) -> bool:
+    return "linkedin.com" in url.lower()
+
+
 @app.route("/api/apply/<int:job_id>", methods=["POST"])
 @login_required
 def api_apply(job_id):
@@ -155,6 +159,18 @@ def api_apply(job_id):
     if not job:
         return jsonify({"ok": False, "msg": "Job not found"}), 404
 
+    url = job.get("url", "")
+
+    # LinkedIn: open in the user's default browser (already logged in → Easy Apply works)
+    if _is_linkedin_url(url):
+        import webbrowser
+        webbrowser.open(url)
+        return jsonify({
+            "ok": True,
+            "msg": "LinkedIn job opened in your browser — click Easy Apply, fill the form, then mark as Applied here.",
+        })
+
+    # Company ATS portals: launch Playwright autofill in an interactive window
     import tempfile
     bat_content = (
         f"@echo off\r\n"
@@ -175,7 +191,7 @@ def api_apply(job_id):
         "ok": True,
         "msg": (
             f"Autofill launched for {job['title']} @ {job['company']}. "
-            "A browser will open — fill any missed fields, then click Submit yourself."
+            "A browser will open and fill the form — review everything, then click Submit yourself."
         ),
     })
 
