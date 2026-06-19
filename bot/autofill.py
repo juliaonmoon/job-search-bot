@@ -3,6 +3,7 @@
 Supported: Greenhouse, Lever, Workday, LinkedIn Easy Apply.
 """
 import asyncio
+import os
 from playwright.async_api import async_playwright
 
 
@@ -48,7 +49,7 @@ async def fill_greenhouse(page, resume_path: str, cover_letter_text: str = ""):
     await _fill(page, "#phone", DEFAULTS["phone"])
 
     upload = await page.query_selector("input[type='file'][name*='resume']")
-    if upload:
+    if upload and resume_path and os.path.isfile(resume_path):
         await upload.set_input_files(resume_path)
 
     if cover_letter_text:
@@ -70,7 +71,7 @@ async def fill_lever(page, resume_path: str, cover_letter_text: str = ""):
     await _fill(page, "input[name='org']", "Electronic Arts")
 
     upload = await page.query_selector("input[type='file']")
-    if upload:
+    if upload and resume_path and os.path.isfile(resume_path):
         await upload.set_input_files(resume_path)
 
     if cover_letter_text:
@@ -83,7 +84,7 @@ async def fill_lever(page, resume_path: str, cover_letter_text: str = ""):
 
 async def fill_workday(page, resume_path: str, cover_letter_text: str = ""):
     upload = await page.query_selector("input[type='file']")
-    if upload:
+    if upload and resume_path and os.path.isfile(resume_path):
         await upload.set_input_files(resume_path)
         await page.wait_for_timeout(3000)
 
@@ -117,7 +118,7 @@ async def fill_linkedin_easy_apply(page, resume_path: str, cover_letter_text: st
                 await inp.fill(DEFAULTS["location"])
 
         upload = await page.query_selector("input[type='file']")
-        if upload:
+        if upload and resume_path and os.path.isfile(resume_path):
             await upload.set_input_files(resume_path)
 
         if cover_letter_text:
