@@ -11,6 +11,7 @@ import re
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
+from email.utils import parsedate_to_datetime
 
 
 def _extract_salary_hint(text: str) -> str:
@@ -68,6 +69,8 @@ def search_remotive(search_term: str, limit: int = 30) -> list[dict]:
         if not salary:
             salary = _extract_salary_hint(desc + " " + title)
 
+        date_posted = (job.get("publication_date") or "")[:10]  # "2024-06-15T..." → "2024-06-15"
+
         if title and link:
             results.append({
                 "title":       title,
@@ -77,6 +80,7 @@ def search_remotive(search_term: str, limit: int = 30) -> list[dict]:
                 "source":      "remotive",
                 "salary_text": salary,
                 "jd_snippet":  desc[:800],
+                "date_posted": date_posted,
             })
     return results
 
@@ -116,6 +120,11 @@ def search_jobicy_rss(tag: str, limit: int = 20) -> list[dict]:
         link    = item.findtext("link", "")
         desc    = _strip_html(item.findtext("description", ""))
         salary  = _extract_salary_hint(desc + " " + title)
+        pub_raw = item.findtext("pubDate", "")
+        try:
+            date_posted = parsedate_to_datetime(pub_raw).strftime("%Y-%m-%d") if pub_raw else ""
+        except Exception:
+            date_posted = ""
 
         if title and link:
             results.append({
@@ -126,6 +135,7 @@ def search_jobicy_rss(tag: str, limit: int = 20) -> list[dict]:
                 "source":      "jobicy",
                 "salary_text": salary,
                 "jd_snippet":  desc[:800],
+                "date_posted": date_posted,
             })
     return results
 

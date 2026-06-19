@@ -49,6 +49,7 @@ def _migrate():
         ("tailor_output", "TEXT"),
         ("cover_output",  "TEXT"),
         ("daily_batch",   "TEXT"),
+        ("date_posted",   "TEXT"),
     ]
     with get_conn() as conn:
         for col, col_type in new_cols:
@@ -59,16 +60,16 @@ def _migrate():
 
 
 def add_job(title, company, location, url, source, jd_snippet="",
-            salary_text="", score=0, jd_full="", daily_batch=""):
+            salary_text="", score=0, jd_full="", daily_batch="", date_posted=""):
     with get_conn() as conn:
         try:
             conn.execute(
                 """INSERT INTO jobs
                    (title, company, location, url, source, jd_snippet,
-                    salary_text, score, jd_full, daily_batch)
-                   VALUES (?,?,?,?,?,?,?,?,?,?)""",
+                    salary_text, score, jd_full, daily_batch, date_posted)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
                 (title, company, location, url, source, jd_snippet,
-                 salary_text, score, jd_full, daily_batch),
+                 salary_text, score, jd_full, daily_batch, date_posted),
             )
             return True
         except sqlite3.IntegrityError:
