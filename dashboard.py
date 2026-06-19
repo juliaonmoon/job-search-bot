@@ -4,7 +4,6 @@
 Run:  python dashboard.py
 Open: http://localhost:5056
 """
-import subprocess
 import sys
 import threading
 from pathlib import Path
@@ -151,28 +150,9 @@ def api_apply(job_id):
     job = get_job(job_id)
     if not job:
         return jsonify({"ok": False, "msg": "Job not found"}), 404
-
-    data = request.get_json() or {}
-    resume_path = data.get("resume_path") or DEFAULT_RESUME
-    resume_exists = bool(resume_path) and Path(resume_path).is_file()
-
-    cover = job.get("cover_output") or ""
-
-    script = (
-        f"import sys; sys.path.insert(0, r'{Path(__file__).parent}')\n"
-        f"from bot.autofill import autofill\n"
-        f"autofill({repr(job['url'])}, {repr(resume_path if resume_exists else '')}, {repr(cover)}, headless=False)\n"
-    )
-    kwargs = {}
-    if sys.platform == "win32":
-        kwargs["creationflags"] = subprocess.CREATE_NEW_CONSOLE
-    subprocess.Popen([sys.executable, "-c", script], **kwargs)
-
-    if resume_exists:
-        msg = "Browser opened — form pre-filled. Review and click Submit, then mark as Applied here."
-    else:
-        msg = "Browser opened — no local resume PDF found, upload it manually in the form. Then mark as Applied here."
-    return jsonify({"ok": True, "msg": msg})
+    import webbrowser
+    webbrowser.open(job["url"])
+    return jsonify({"ok": True, "msg": "Job opened in your browser — apply and then mark as Applied here."})
 
 
 @app.route("/api/status/<int:job_id>", methods=["POST"])

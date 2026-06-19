@@ -194,16 +194,12 @@ tr.s-skipped      { opacity: .45; }
 
 <!-- Apply modal -->
 <div class="overlay" id="applyModal">
-  <div class="modal" style="max-width:480px;">
+  <div class="modal" style="max-width:420px;">
     <h2>Apply for Job</h2>
-    <div class="fld">
-      <label>Resume PDF path</label>
-      <input type="text" id="resumeIn" value="C:\Users\jules\job-search-bot\resume.pdf">
-    </div>
-    <p class="hint">Leave path blank if you don't have a local PDF — bot will still open the form and fill your name/email/phone. Upload the resume manually in the browser.</p>
+    <p class="hint" style="font-size:13px;color:var(--text);margin-bottom:8px">This will open the job listing in your browser. Apply there, then come back and mark it as Applied.</p>
     <div class="modal-foot">
       <button class="btn-sec" onclick="closeApply()">Cancel</button>
-      <button class="btn-pri" onclick="doApply()">Open &amp; Fill Form</button>
+      <button class="btn-pri" onclick="doApply()">Open Job</button>
     </div>
   </div>
 </div>
@@ -337,11 +333,9 @@ async function genCover(id) {
 function openApply(id) { applyId = id; document.getElementById("applyModal").classList.add("open"); }
 
 async function doApply() {
-  const resume = document.getElementById("resumeIn").value.trim();
-  if (!resume) { toast("Enter resume path", "err"); return; }
   closeApply();
-  const d = await (await post(`/api/apply/${applyId}`, {resume_path: resume})).json();
-  toast(d.msg || (d.ok ? "Browser opened!" : "Error: " + d.msg), d.ok ? "ok" : "err");
+  const d = await (await post(`/api/apply/${applyId}`)).json();
+  toast(d.msg || (d.ok ? "Job opened!" : "Error: " + d.msg), d.ok ? "ok" : "err");
 }
 
 // ── search ────────────────────────────────────────────────────────────────────
