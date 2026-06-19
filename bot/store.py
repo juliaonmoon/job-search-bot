@@ -12,6 +12,14 @@ import os
 import time
 from datetime import date
 from pathlib import Path
+from urllib.parse import urlparse, urlunparse
+
+
+def _norm(url: str) -> str:
+    if not url:
+        return url
+    p = urlparse(url)
+    return urlunparse((p.scheme, p.netloc, p.path, "", "", ""))
 
 import requests
 
@@ -134,7 +142,8 @@ def add_job(title, company, location, url, source,
             jd_full="", daily_batch="", date_posted="") -> bool:
     """Add a job if URL not already present. Returns True if new."""
     store = _load()
-    if any(j["url"] == url for j in store["jobs"]):
+    url = _norm(url)
+    if any(_norm(j["url"]) == url for j in store["jobs"]):
         return False
     job = {
         "id":           store["next_id"],
