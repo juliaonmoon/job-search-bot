@@ -10,8 +10,7 @@ import threading
 from pathlib import Path
 
 import os
-from functools import wraps
-from flask import Flask, jsonify, render_template, request, session, redirect, url_for, flash
+from flask import Flask, jsonify, render_template, request
 
 try:
     from dotenv import load_dotenv
@@ -27,16 +26,10 @@ from bot.tailor import pick_persona, tailor_resume, write_cover_letter
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("WEB_SECRET", "job-search-secret-change-me")
-WEB_PASSWORD = os.environ.get("WEB_PASSWORD", "julia2026")
 
 
 def login_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        if not session.get("logged_in"):
-            return redirect(url_for("login"))
-        return f(*args, **kwargs)
-    return decorated
+    return f
 
 
 DEFAULT_RESUME = r"C:\Users\jules\job-search-bot\resume.pdf"
@@ -47,21 +40,6 @@ _search_lock = threading.Lock()
 
 
 # ── routes ────────────────────────────────────────────────────────────────────
-
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        if request.form.get("password") == WEB_PASSWORD:
-            session["logged_in"] = True
-            return redirect(url_for("index"))
-        flash("Wrong password.")
-    return render_template("login.html")
-
-
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("login"))
 
 
 @app.route("/")
