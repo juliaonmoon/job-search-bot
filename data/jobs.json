@@ -1,5 +1,5 @@
 {
-  "next_id": 24,
+  "next_id": 25,
   "jobs": [
     {
       "id": 1,
@@ -293,6 +293,29 @@
       "tailor_output": null,
       "cover_output": null,
       "daily_batch": "2026-07-16"
+    },
+    {
+      "id": 24,
+      "title": "Head of Marketing & Communications",
+      "company": "garden3d",
+      "location": "Worldwide",
+      "url": "https://remotive.com/remote-jobs/marketing/head-of-marketing-communications-2091068",
+      "source": "remotive",
+      "status": "found",
+      "date_found": "2026-07-17",
+      "date_posted": "2026-07-16",
+      "date_applied": null,
+      "notes": null,
+      "contact": null,
+      "follow_up": null,
+      "persona": null,
+      "jd_snippet": "We are hiring a  Head of Marketing &amp; Communications  to tell the garden3d story across the internet, from wherever in the world you happen to be.  \n  More details if you check our  original job posting link   \n  About  garden3d   \n We are worker owned creative collective, innovating on everything from brands and IRL communities to IoT devices and cross platform apps. We share profit, open source everything, spin out new businesses, and invest in exciting ideas through financial and/or in-kind contributions. \n Our client roster includes  Google ,  Stripe ,  Figma ,  Hinge ,  Black Socialists in America ,  ACLU ,  Pratt ,  Parsons ,  Mozilla ,  The Nobel Prize ,  MIT ,  Gnosis ,  Etsy  &amp;  Gagosian . \n We’re the software team behind innovative products like  The Light Phone  &amp;  Mi",
+      "salary_text": "$150k - $230k",
+      "score": 20,
+      "jd_full": "",
+      "tailor_output": null,
+      "cover_output": null,
+      "daily_batch": "2026-07-17"
     }
   ]
 }
