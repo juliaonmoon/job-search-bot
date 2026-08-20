@@ -82,11 +82,18 @@ def score_job(title: str, company: str, jd_text: str, salary_text: str = "") -> 
     combined = f"{title} {jd_text}".lower()
     score = 0
 
-    # Title match (0-25)
+    # Title match (0-25) -- also acts as a hard gate: if the title has no
+    # program/project-management relevance at all, skip regardless of salary
+    # or company, so an unrelated role (e.g. "Head of Marketing") can't pass
+    # just because it discloses a salary above the floor.
+    title_match = False
     for kw, pts in TITLE_KEYWORDS:
         if kw in title.lower():
             score += pts
+            title_match = True
             break
+    if not title_match:
+        return score, True
 
     # Domain match (0-30)
     best_domain = 0
